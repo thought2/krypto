@@ -79,6 +79,4 @@ encrypt config string =
     <#> String.fromCharArray
 
 decrypt :: Config -> String -> Either Error String
-decrypt config string =
-  encryptArray config (String.toCharArray string)
-    <#> String.fromCharArray
+decrypt = encrypt
