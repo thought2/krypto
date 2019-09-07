@@ -9,10 +9,14 @@ import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Int (rem)
 import Data.Maybe (Maybe)
-import Data.PosInt (PosInt)
-import Data.PosInt as PosInt
+import Data.Refined (GreaterThan, Refined)
+import Data.Refined as Refine
 import Data.String.CodeUnits as String
 import Data.Traversable (traverse)
+import Data.Typelevel.Num (D0)
+
+type PosInt
+  = Refined (GreaterThan D0) Int
 
 type Config
   = { shift :: Int
@@ -39,10 +43,10 @@ instance showError :: Show Error where
 -- | For a given positive length and any index, returns a new index which is guaranteed to be within the length.
 -- | Negative values are considered to be taken from the end.
 -- | Exceeding values are wrapped.
-foo :: PosInt -> Int -> Int
-foo length index =
+rotInt :: PosInt -> Int -> Int
+rotInt length index =
   let
-    n = PosInt.toInt length
+    n = Refine.unrefine length
   in
     index `rem` n
       # \x -> if x >= 0 then x else x + n
@@ -51,9 +55,9 @@ foo length index =
 indexRot :: forall a. Array a -> Int -> Maybe a
 indexRot xs i =
   let
-    n = Array.length xs # PosInt.fromIntTrunc
+    n = Array.length xs # Refine.unsafeRefine
   in
-    Array.index xs (foo n i)
+    Array.index xs (rotInt n i)
 
 encryptChar :: Config -> Char -> Maybe Char
 encryptChar { alphabet, shift } char = do
@@ -71,5 +75,10 @@ encryptArray config xs =
 
 encrypt :: Config -> String -> Either Error String
 encrypt config string =
+  encryptArray config (String.toCharArray string)
+    <#> String.fromCharArray
+
+decrypt :: Config -> String -> Either Error String
+decrypt config string =
   encryptArray config (String.toCharArray string)
     <#> String.fromCharArray

@@ -20,6 +20,7 @@ You can edit this file as you like.
     , "positive-integers"
     , "generics-rep"
     , "strings"
+    , "refined"
     ]
 , packages =
     ./packages.dhall
